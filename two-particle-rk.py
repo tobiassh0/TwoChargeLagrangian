@@ -151,21 +151,23 @@ def plot_larmor_radii_through_time(t, v, masses, charges, B0):
 
 def plot_xy(r):
     plt.clf()
-    plt.plot(r[:, 0], r[:, 1], label="Particle 1 (x-y)")
-    plt.plot(r[:, 3], r[:, 4], label="Particle 2 (x-y)")
+    plt.plot(r[:, 0], r[:, 1], color='b', label="Particle 1 (x-y)")
+    plt.plot(r[:, 3], r[:, 4], color='r', label="Particle 2 (x-y)")
     plt.xlabel("x")
     plt.ylabel("y")
     plt.legend()
     plt.title("Motion of Two Charged Particles")
     plt.grid(True)
     plt.savefig("twoparticle-xy.png")
+    plt.xlim(-2*femto_metre,2*femto_metre)
+    plt.ylim(-2*femto_metre,2*femto_metre)
     plt.show()
     return None
 
 def plot_xt(t, r):
     plt.clf()
-    plt.plot(t, r[:, 0], label="Particle 1 (x)")
-    plt.plot(t, r[:, 3], label="Particle 2 (x)")
+    plt.plot(t, r[:, 0], color='b', label="Particle 1 (x)")
+    plt.plot(t, r[:, 3], color='r', label="Particle 2 (x)")
     plt.xlabel("t")
     plt.ylabel("x")
     plt.legend()
@@ -177,8 +179,8 @@ def plot_xt(t, r):
 
 def plot_yt(t, r):
     plt.clf()
-    plt.plot(t, r[:, 1], label="Particle 1 (y)")
-    plt.plot(t, r[:, 4], label="Particle 2 (y)")
+    plt.plot(t, r[:, 1], color='b', label="Particle 1 (y)")
+    plt.plot(t, r[:, 4], color='r', label="Particle 2 (y)")
     plt.xlabel("t")
     plt.ylabel("y")
     plt.legend()
@@ -199,9 +201,16 @@ def plot_time_z(t, r):
     plt.savefig("twoparticle-tz.png")
     return None
 
-def plot_energy_t(t, v):
+def plot_energy_through_time(t, v, masses):
+    m1, m2 = masses
     plt.clf()
-    
+    E1 = 0.5*m1*(v[:, 0]**2 + v[:, 1]**2 + v[:, 2]**2)
+    E2 = 0.5*m2*(v[:, 3]**2 + v[:, 4]**2 + v[:, 5]**2)
+    plt.plot(t, E1, color='b', label='Particle (1) energy')
+    plt.plot(t, E2, color='r', label='Particle (2) energy')
+    plt.xlabel('Time')
+    plt.ylabel('Energy [J]')
+    plt.show()
     return None
 
 def make_video(initial_params=''):
@@ -246,12 +255,12 @@ m1 = mp  # Mass of particle 1
 m2 = mp  # "    "  particle 2
 q1 = qe  # Charge of particle 1
 q2 = qe # "       " particle 2
-B0 = 1.0  # Magnetic field strength [T]
+B0 = 0.0  # Magnetic field strength [T]
 Temp = 1*keV_to_K # K
-proton_gyro_period = 2*np.pi*mp/(qe*B0)
+proton_gyro_period = 2*np.pi*mp/(qe*1.0) # B0 = 1.0
 
 thermal_speed = np.sqrt(2 * kb * Temp / mp)
-proton_gyro_radius = np.sqrt(2 * kb * Temp * mp) / (qe * B0) # approximated by v = sqrt(2*E/m)
+proton_gyro_radius = np.sqrt(2 * kb * Temp * mp) / (qe * 1.0) # approximated by v = sqrt(2*E/m) with B0 = 1.0
 
 # Initial positions
 (x1, y1, z1) = (femto_metre, 0.0, 0.0)
@@ -259,13 +268,13 @@ proton_gyro_radius = np.sqrt(2 * kb * Temp * mp) / (qe * B0) # approximated by v
 r0 = np.array([x1, y1, z1, x2, y2, z2])
 
 # Initial velocities
-(vx1, vy1, vz1) = (-0.1*thermal_speed, 0.1*thermal_speed, 0.0)
-(vx2, vy2, vz2) = (0.1*thermal_speed, 0.1*thermal_speed, 0.0)
+(vx1, vy1, vz1) = (-10*femto_metre, 0.0, 0.0)
+(vx2, vy2, vz2) = (10*femto_metre, 0.0, 0.0)
 v0 = np.array([vx1, vy1, vz1, vx2, vy2, vz2])
 
 # Time interval and step
-t_span = (0.0, 20*proton_gyro_period)
-dt = proton_gyro_period/1000
+t_span = (0.0, 10*femto_metre)
+dt = t_span[-1]/1000
 
 print(thermal_speed, proton_gyro_radius, proton_gyro_period, proton_gyro_radius/dt)
 
@@ -285,8 +294,10 @@ t, r, v = load_all_data(os.getcwd()+'/run_{}'.format(initial_params)+'/',initial
 # # Plotting Scripts
 
 plot_xy(r)
-plot_xt(t, r)
-plot_yt(t, r)
+sys.exit()
+# plot_xt(t, r)
+# plot_yt(t, r)
+plot_energy_through_time(t, v, [m1, m2])
 # plot_time_z(t, r)
 # plot_larmor_radii_through_time(t, v, (m1, m2), (q1, q2), B0)
 # plot_through_time(t, r, initial_params)
