@@ -53,13 +53,17 @@ def plot_larmor_radii_through_time(solloc, t, v, masses, charges, B0):
 
 def plot_xy(solloc, r):
     plt.clf()
+    plt.grid(True)
+    # 1
     plt.plot(r[:, 0], r[:, 1], color='b', label='Particle 1 (x-y)')
+    plt.scatter(r[0, 0], r[0, 1], facecolor='b', edgecolor='none')
+    # 2
     plt.plot(r[:, 3], r[:, 4], color='r', label='Particle 2 (x-y)')
+    plt.scatter(r[0, 3], r[0, 4], facecolor='r', edgecolor='none')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.legend()
     # plt.title('Motion of Two Charged Particles')
-    plt.grid(True)
     plt.savefig(solloc+'/twoparticle-xy.png')
     # plt.show()
     return None
@@ -90,10 +94,10 @@ def plot_yt(solloc, t, r):
     # plt.show()
     return None
 
-def plot_time_z(solloc, t, r):
+def plot_zt(solloc, t, r):
     plt.clf()
-    plt.plot(t, r[:, 2], label='Particle 1 (z)')
-    plt.plot(t, r[:, 5], label='Particle 2 (z)')
+    plt.plot(t, r[:, 2], color='b', label='Particle 1 (z)')
+    plt.plot(t, r[:, 5], color='r', label='Particle 2 (z)')
     plt.xlabel('t')
     plt.ylabel('z')
     plt.legend()
@@ -106,18 +110,24 @@ def plot_phase_space(solloc, r, v):
     # x
     ax[0].plot(r[:,0], v[:,0], color='b') # 1
     ax[0].plot(r[:,3], v[:,3], color='r') # 2
+    ax[0].scatter(r[0,0], v[0,0], facecolor='b',edgecolor='none') # 1
+    ax[0].scatter(r[0,3], v[0,3], facecolor='r',edgecolor='none') # 2
     ax[0].set_title('x-vx')
     # y
     ax[1].plot(r[:,1], v[:,1], color='b') # 1
     ax[1].plot(r[:,4], v[:,4], color='r') # 2
+    ax[1].scatter(r[0,1], v[0,1], facecolor='b',edgecolor='none') # 1
+    ax[1].scatter(r[0,4], v[0,4], facecolor='r',edgecolor='none') # 2
     ax[1].set_title('y-vy')
     # z
     ax[2].plot(r[:,2], v[:,2], color='b') # 1
     ax[2].plot(r[:,5], v[:,5], color='r') # 2
-    print(r[:,5], v[:,5])
+    ax[2].scatter(r[0,2], v[0,2], facecolor='b',edgecolor='none') # 1
+    ax[2].scatter(r[0,5], v[0,5], facecolor='r',edgecolor='none') # 2
     ax[2].set_title('z-vz')
-    plt.show()
     fig.savefig(solloc+'/phase_space.png')
+    fig.clf()
+    # plt.show()
     return None
 
 def plot_energy_through_time(solloc, t, v, masses):
@@ -144,13 +154,12 @@ def make_video(solloc):
     return None
 
 def plot_all(solloc, t, r, v, masses, charges, B0):
-    global solloc
     plot_xy(solloc, r)
     plot_xt(solloc, t, r)
     plot_yt(solloc, t, r)
+    plot_zt(solloc, t, r)
     plot_energy_through_time(solloc, t, v, masses)
     plot_phase_space(solloc, r, v)
-    # tpp.plot_time_z(solloc, t, r)
     plot_larmor_radii_through_time(solloc, t, v, masses, charges, B0)
     # tpp.plot_position_through_time(solloc, t, r)
     # tpp.make_video()
