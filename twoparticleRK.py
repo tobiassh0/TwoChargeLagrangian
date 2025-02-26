@@ -6,7 +6,23 @@ import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import pickle
 
+# Dump pkl files
+def dumpfiles(array, name):
+    print('Pickling '+name+'...')
+    with open(name+'.pkl', 'wb') as f:
+        pickle.dump(array,f)
+    return None
+
+# Read pkl files
+def read_pkl(name,message=True):
+    print('Loading '+name+'...')
+    # load pkl file
+    with open(name+'.pkl', 'rb') as f:
+        array = pickle.load(f)
+    print('Done.')
+    return array
 
 def runge_kutta_2nd_order(f, r0, v0, t_span, dt, masses, charges, B0, k, gamma=0, alpha_1=0, E0=0):
     """
@@ -96,32 +112,48 @@ def forces(r, v, masses, charges, B0, k, gamma, alpha_1, E0, t):
     return drdt, dvdt
 
 def save_all_data(masses, charges, B0, t, r, v,\
-                    pos_df='positions_DF_',vel_df='velocities_DF_'):
+                    positions_name='positions_',velocities_name='velocities_'):
     
     initial_params = '_'.join([str(i) for i in np.concatenate((np.array(masses)/const.me,np.array(charges)/const.qe,[B0]),axis=0)])
     homeloc=os.getcwd()
     if 'run_{}'.format(initial_params) not in os.listdir(homeloc):
         os.mkdir('run_{}'.format(initial_params))
     run_file_loc = homeloc+'/run_{}/'.format(initial_params)
-    rows = t
-    columns_r = ['x1','y1','z1','x2','y2','z2']
-    columns_v = ['vx1','vy1','vz1','vx2','vy2','vz2']
-    # Make DataFrames
-    dfr = pd.DataFrame(data=r,index=rows,columns=columns_r)
-    dfv = pd.DataFrame(data=v,index=rows,columns=columns_v)
-    # Save DataFrame
-    dfr.to_csv(run_file_loc+pos_df+'.csv')
-    dfv.to_csv(run_file_loc+vel_df+'.csv')
+
+    # # --- csv pandas --- #
+    # rows = t
+    # columns_r = ['x1','y1','z1','x2','y2','z2']
+    # columns_v = ['vx1','vy1','vz1','vx2','vy2','vz2']
+    # # Make DataFrames
+    # dfr = pd.DataFrame(data=r,index=rows,columns=columns_r)
+    # dfv = pd.DataFrame(data=v,index=rows,columns=columns_v)
+    # # Save DataFrame
+    # dfr.to_csv(run_file_loc+positions_name+'DF_.csv')
+    # dfv.to_csv(run_file_loc+velocities_name+'DF_.csv')
+
+    # --- pickle --- #
+    tt = t.reshape(-1, 1) # reshape to column
+    # hstack with r & v
+    dumpfiles(np.hstack((tt,r)),run_file_loc+positions_name+'pkl_')
+    dumpfiles(np.hstack((tt,v)),run_file_loc+velocities_name+'pkl_')
+
     return None
 
-def load_all_data(solloc,initial_params,pos_df='positions_DF_',vel_df='velocities_DF_'):
-    dfr = pd.read_csv(solloc+pos_df+'.csv',index_col=0)
-    dfv = pd.read_csv(solloc+vel_df+'.csv',index_col=0)
-    r = dfr.to_numpy()
-    v = dfv.to_numpy()
+def load_all_data(solloc,initial_params,positions_name='positions_',velocities_name='velocities_'):
+    # # --- csv --- #
+    # dfr = pd.read_csv(solloc+positions_name+'DF_.csv',index_col=0)
+    # dfv = pd.read_csv(solloc+velocities_name+'DF_.csv',index_col=0)
+    # r = dfr.to_numpy()
+    # v = dfv.to_numpy()
+    # t = dfr.index.to_numpy()
+    # --- pickle --- #
+    tr = read_pkl(solloc+positions_name+'pkl_')
+    t = tr[:,0]
+    r = tr[:,1:]
+    v = read_pkl(solloc+velocities_name+'pkl_')[:,1:]
+    print('t shape :',t.shape)
     print('r shape :',r.shape)
     print('v shape :',v.shape)
-    t = dfr.index.to_numpy()
     return t, r, v
 
 # Example usage:
@@ -152,29 +184,20 @@ v0 = np.array([vx1, vy1, vz1, vx2, vy2, vz2])
 t_span = (0.0, 5*proton_gyro_period)
 dt = t_span[-1]/1000
 
+# Length and time scales
 print(thermal_speed, proton_gyro_radius, proton_gyro_period, proton_gyro_radius/dt)
 
-# Run Sim
 
+# Run Sim
 t, r, v = runge_kutta_2nd_order(forces, r0, v0, t_span, dt, masses, charges, B0, const.k, 
                             gamma=1, alpha_1=1, E0=1)
 save_all_data(masses, charges, B0, t, r, v)
 
 
 # Load Sim
-
 initial_params = '_'.join([str(i) for i in np.concatenate((np.array(masses)/const.me,np.array(charges)/const.qe,[B0]),axis=0)])
 t, r, v = load_all_data(os.getcwd()+'/run_{}'.format(initial_params)+'/',initial_params)
 
 
-# # Plotting Scripts
-
-tpp.plot_xy(r)
-tpp.plot_xt(t, r)
-tpp.plot_yt(t, r)
-tpp.plot_energy_through_time(t, v, masses)
-tpp.plot_phase_space(r, v)
-# tpp.plot_time_z(t, r)
-tpp.plot_larmor_radii_through_time(t, v, masses, charges, B0)
-# tpp.plot_position_through_time(t, r, initial_params)
-# tpp.make_video(initial_params)
+# Plotting Scripts
+tpp.plot_all(solloc, t, r, v, masses, charges, B0)

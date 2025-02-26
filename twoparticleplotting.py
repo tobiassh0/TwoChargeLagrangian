@@ -15,10 +15,9 @@ def sort_pngs(png_files):
 
     return sorted(png_files, key=extract_number)
 
-def plot_position_through_time(t, r, initial_params):
-    run_file_loc = os.getcwd()+'/run_{}'.format(initial_params)
-    if 'particle_trajectories' not in os.listdir(run_file_loc):
-        os.mkdir(run_file_loc+'/particle_trajectories')
+def plot_position_through_time(solloc, t, r):
+    if 'particle_trajectories' not in os.listdir(solloc):
+        os.mkdir(solloc+'/particle_trajectories')
 
     for i in range(len(t)):
         plt.clf()
@@ -28,10 +27,10 @@ def plot_position_through_time(t, r, initial_params):
         plt.scatter(r[i, 3], r[i, 4], color='r')
         plt.xlim(-4,4)
         plt.ylim(-4,4)
-        plt.savefig(run_file_loc+'/particle_trajectories/xy-{:.2f}.png'.format(t[i]))
+        plt.savefig(solloc+'/particle_trajectories/xy-{:.2f}.png'.format(t[i]))
     return None
 
-def plot_larmor_radii_through_time(t, v, masses, charges, B0):
+def plot_larmor_radii_through_time(solloc, t, v, masses, charges, B0):
     m1, m2 = masses
     q1, q2 = charges
     v1 = v[:, :3]
@@ -48,11 +47,11 @@ def plot_larmor_radii_through_time(t, v, masses, charges, B0):
     plt.plot(t, larmor_radii_2, color='r')
     plt.xlabel('time')
     plt.ylabel('Larmor radii')
-    plt.savefig('twoparticles-larmorradii.png')
+    plt.savefig(solloc+'/twoparticles-larmorradii.png')
 
     return None
 
-def plot_xy(r):
+def plot_xy(solloc, r):
     plt.clf()
     plt.plot(r[:, 0], r[:, 1], color='b', label='Particle 1 (x-y)')
     plt.plot(r[:, 3], r[:, 4], color='r', label='Particle 2 (x-y)')
@@ -61,11 +60,11 @@ def plot_xy(r):
     plt.legend()
     # plt.title('Motion of Two Charged Particles')
     plt.grid(True)
-    plt.savefig('twoparticle-xy.png')
+    plt.savefig(solloc+'/twoparticle-xy.png')
     # plt.show()
     return None
 
-def plot_xt(t, r):
+def plot_xt(solloc, t, r):
     plt.clf()
     plt.plot(t, r[:, 0], color='b', label='Particle 1 (x)')
     plt.plot(t, r[:, 3], color='r', label='Particle 2 (x)')
@@ -74,11 +73,11 @@ def plot_xt(t, r):
     plt.legend()
     plt.title('x-position of Two Charged Particles')
     plt.grid(True)
-    plt.savefig('twoparticle-xt.png')
+    plt.savefig(solloc+'/twoparticle-xt.png')
     # plt.show()
     return None
 
-def plot_yt(t, r):
+def plot_yt(solloc, t, r):
     plt.clf()
     plt.plot(t, r[:, 1], color='b', label='Particle 1 (y)')
     plt.plot(t, r[:, 4], color='r', label='Particle 2 (y)')
@@ -87,11 +86,11 @@ def plot_yt(t, r):
     plt.legend()
     plt.title('y-position of Two Charged Particles')
     plt.grid(True)
-    plt.savefig('twoparticle-yt.png')
+    plt.savefig(solloc+'/twoparticle-yt.png')
     # plt.show()
     return None
 
-def plot_time_z(t, r):
+def plot_time_z(solloc, t, r):
     plt.clf()
     plt.plot(t, r[:, 2], label='Particle 1 (z)')
     plt.plot(t, r[:, 5], label='Particle 2 (z)')
@@ -99,10 +98,10 @@ def plot_time_z(t, r):
     plt.ylabel('z')
     plt.legend()
     plt.grid(True)
-    plt.savefig('twoparticle-tz.png')
+    plt.savefig(solloc+'/twoparticle-tz.png')
     return None
 
-def plot_phase_space(r, v):
+def plot_phase_space(solloc, r, v):
     fig,ax=plt.subplots(figsize=(6,10),nrows=3,layout='constrained')
     # x
     ax[0].plot(r[:,0], v[:,0], color='b') # 1
@@ -118,10 +117,10 @@ def plot_phase_space(r, v):
     print(r[:,5], v[:,5])
     ax[2].set_title('z-vz')
     plt.show()
-    fig.savefig('phase_space.png')
+    fig.savefig(solloc+'/phase_space.png')
     return None
 
-def plot_energy_through_time(t, v, masses):
+def plot_energy_through_time(solloc, t, v, masses):
     m1, m2 = masses
     plt.clf()
     E1 = 0.5*m1*(v[:, 0]**2 + v[:, 1]**2 + v[:, 2]**2)
@@ -131,13 +130,12 @@ def plot_energy_through_time(t, v, masses):
     plt.xlabel('Time')
     plt.ylabel('Energy [J]')
     plt.legend()
-    plt.savefig('energy_time.png')
+    plt.savefig(solloc+'/energy_time.png')
     # plt.show()
     return None
 
-def make_video(initial_params=''):
-    run_file_loc=os.getcwd()+'/run_{}'.format(initial_params)
-    filelocation = run_file_loc+'/particle_trajectories/'
+def make_video(solloc):
+    filelocation = solloc+'/particle_trajectories/'
     png_files = sort_pngs([i for i in os.listdir(filelocation) if '.png' in i])
     with imageio.get_writer(filelocation+'/movie.gif', mode='I', fps=30) as writer:
         for filename in png_files:
@@ -145,6 +143,17 @@ def make_video(initial_params=''):
             writer.append_data(image)
     return None
 
+def plot_all(solloc, t, r, v, masses, charges, B0):
+    global solloc
+    plot_xy(solloc, r)
+    plot_xt(solloc, t, r)
+    plot_yt(solloc, t, r)
+    plot_energy_through_time(solloc, t, v, masses)
+    plot_phase_space(solloc, r, v)
+    # tpp.plot_time_z(solloc, t, r)
+    plot_larmor_radii_through_time(solloc, t, v, masses, charges, B0)
+    # tpp.plot_position_through_time(solloc, t, r)
+    # tpp.make_video()
 
 if __name__=='__main__':
     from twoparticleRK import *
